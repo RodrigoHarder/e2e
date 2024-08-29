@@ -1,4 +1,4 @@
-import { Locator, Page, expect } from "@playwright/test";
+import { Locator, Page } from "@playwright/test";
 
 export default class PaginaLogin {
   private readonly inputUsername: Locator;
@@ -18,18 +18,24 @@ export default class PaginaLogin {
   async fazerLogin(username: string, password: string) {
     await this.inputUsername.fill(username);
     await this.inputPassword.fill(password);
+  }
+
+  async clicarNoBotaoSubmit() {
     await this.botaoSubmit.click();
   }
 
-  async verificarRedirecionamentoSucesso() {
-    await expect(this.page).toHaveURL('http://localhost:4200/principal');
-    await expect(this.page.locator('h2')).toHaveText('Boas vindas!');
+  async capturarMensagemDeErro(): Promise<string> {
+    const dialog = await this.page.waitForEvent('dialog');
+    const message = dialog.message();
+    await dialog.dismiss();
+    return message;
   }
 
-  async verificarMensagemDeErro(mensagem: string) {
-    this.page.on('dialog', async (dialog) => {
-      expect(dialog.message()).toBe(mensagem);
-      await dialog.dismiss();
-    });
+  async obterURLAtual() {
+    return this.page.url();
+  }
+
+  async obterTextoCabecalho() {
+    return this.page.locator('h2').innerText();
   }
 }
